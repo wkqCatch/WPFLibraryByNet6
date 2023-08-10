@@ -1,0 +1,30 @@
+﻿<Window x:Class="CameraLib.CameraSettingUI"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:CameraLib"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Width="559"
+    Height="354"
+    mc:Ignorable="d"
+    Title="相机设置">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+            <Label Content="相机序号：" Margin="3,3,0,3" VerticalAlignment="Center"/>
+            <ComboBox Width="80" Margin="0,3,3,3" VerticalAlignment="Center">
+                <ComboBoxItem Content="123"/>
+                <ComboBoxItem Content="456" IsSelected="True"/>
+            </ComboBox>
+        </StackPanel>
+    </Grid>
+</Window>
