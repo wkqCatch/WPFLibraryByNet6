@@ -18,7 +18,7 @@ namespace CameraLib
 
         PvBuffer mConvertBuffer = new PvBuffer();
 
-        PvBufferConverter mBufferConverter = new PvBufferConverter(16);
+        PvBufferConverter mBufferConverter = new(16);
 
         public event EventHandler AcquisitionEvent;
 
