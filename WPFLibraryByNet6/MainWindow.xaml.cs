@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using CameraLib;
+
 namespace WPFLibraryByNet6
 {
     /// <summary>
@@ -23,6 +25,12 @@ namespace WPFLibraryByNet6
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            CameraSelectionUI cameraSelectionUI = new CameraSelectionUI();
+            cameraSelectionUI.ShowDialog();
         }
     }
 }

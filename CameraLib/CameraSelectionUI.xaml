@@ -7,6 +7,22 @@
              mc:Ignorable="d" 
              Title="相机选择" Height="509" Width="774">
     <Grid>
-        <Button Content="安阿牛"/>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Orientation="Vertical">
+            <local:CameraShowControl x:Name="SmartImg" MinHeight="160" Margin="2"/>
+            <Button MinHeight="30" Margin="2" Padding="2" Content="dianji" Click="Button_Click"/>
+        </StackPanel>
+
     </Grid>
 </Window>

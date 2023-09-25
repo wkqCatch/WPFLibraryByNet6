@@ -2,39 +2,36 @@
 using HalconDotNet;
 using PvDotNet;
 using System;
+using System.Diagnostics;
 using System.Threading;
-
 using System.Threading.Tasks;
+using Windows.Media.Capture.Core;
 
 namespace CameraLib
 {
     public class CameraDevice : IDisposable
     {
         public object AcquisitionLocker { get; set; } = new object();
+        readonly PvDevice mDevice = new();
+        readonly PvStream mStream = new();
+        PvPipeline? mPipeline;
+        readonly PvBuffer mConvertBuffer = new();
+        readonly PvBufferConverter mBufferConverter = new(16);
 
-        PvDevice mDevice = new PvDevice();
-        PvStream mStream = new PvStream();
-        PvPipeline mPipeline;
+        public event EventHandler? AcquisitionEvent;
 
-        PvBuffer mConvertBuffer = new PvBuffer();
+        public bool IsConnected => mDevice.IsConnected;
 
-        PvBufferConverter mBufferConverter = new(16);
-
-        public event EventHandler AcquisitionEvent;
-
-        public PvGenParameterArray DeviceParamArray
+        public PvGenParameterArray? DeviceParamArray
         {
             get { return mDevice.GenParameters; }
         }
 
         public HImage AcquisitionImage { get; set; } = new HImage();
-
-        Task mAcquisitionTask;
-        CancellationTokenSource mAcquisitionTokenSource;
-
-        public PvAcquisitionStateManager MAcquisitionManager { get; set; }
-
-        private bool _disposed;
+        Task? mAcquisitionTask;
+        CancellationTokenSource? mAcquisitionTokenSource;
+        public PvAcquisitionStateManager? AcquisitionManager { get; set; }
+        private bool mDisposed;
 
         public CameraDevice()
         {
@@ -54,7 +51,7 @@ namespace CameraLib
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposed)
+            if (!mDisposed)
             {
                 if (disposing)
                 {
@@ -63,14 +60,13 @@ namespace CameraLib
 
                 // 释放非托管资源
                 DisConnectDevice();
-
-                _disposed = true;
+                mDisposed = true;
             }
         }
 
         public async Task<bool> ConnectDeviceAsync(string strIP)
         {
-            bool bResult = await Task.Run(() =>
+            return await Task.Run(async () =>
                            {
                                // Connecting
                                try
@@ -86,8 +82,8 @@ namespace CameraLib
                                }
                                catch (PvException ex)
                                {
-                                   Console.WriteLine(ex.Message);
-                                   DisConnectDevice();
+                                   Trace.WriteLine(ex.Message);
+                                   await DisConnectDeviceAsync();
                                    return false;
                                }
 
@@ -111,8 +107,8 @@ namespace CameraLib
                                }
                                catch (PvException ex)
                                {
-                                   Console.WriteLine(ex.Message);
-                                   DisConnectDevice();
+                                   Trace.WriteLine(ex.Message);
+                                   await DisConnectDeviceAsync();
                                    return false;
                                }
 
@@ -124,23 +120,23 @@ namespace CameraLib
 
                                    // Start display thread
                                    mAcquisitionTokenSource = new CancellationTokenSource();
-                                   mAcquisitionTask = new Task(AcquisitonThread, mAcquisitionTokenSource.Token, TaskCreationOptions.LongRunning);
-                                   mAcquisitionTask.Start();
+
+                                   mAcquisitionTask = Task.Factory.StartNew(AcquisitonThread,
+                                                                            mAcquisitionTokenSource.Token,
+                                                                            TaskCreationOptions.LongRunning,
+                                                                            TaskScheduler.Default);
 
                                    // Create AcquisitionManager
-                                   MAcquisitionManager = new PvAcquisitionStateManager(mDevice, mStream);
+                                   AcquisitionManager = new PvAcquisitionStateManager(mDevice, mStream);
                                }
                                catch (PvException ex)
                                {
-                                   Console.WriteLine(ex.Message);
-                                   DisConnectDevice();
+                                   Trace.WriteLine(ex.Message);
+                                   await DisConnectDeviceAsync();
                                    return false;
                                }
-
                                return true;
                            });
-
-            return bResult;
         }
 
         public bool ConnectDevice(string strIP)
@@ -149,7 +145,7 @@ namespace CameraLib
             try
             {
                 // Connect to device
-                mDevice.Connect(strIP, PvAccessType.Control);
+                mDevice.Connect(strIP);
 
                 // Open stream
                 mStream.Open(strIP);
@@ -159,7 +155,7 @@ namespace CameraLib
             }
             catch (PvException ex)
             {
-                Console.WriteLine(ex.Message);
+                Trace.WriteLine(ex.Message);
                 DisConnectDevice();
                 return false;
             }
@@ -184,7 +180,7 @@ namespace CameraLib
             }
             catch (PvException ex)
             {
-                Console.WriteLine(ex.Message);
+                Trace.WriteLine(ex.Message);
                 DisConnectDevice();
                 return false;
             }
@@ -197,15 +193,18 @@ namespace CameraLib
 
                 // Start display thread
                 mAcquisitionTokenSource = new CancellationTokenSource();
-                mAcquisitionTask = new Task(AcquisitonThread, mAcquisitionTokenSource.Token, TaskCreationOptions.LongRunning);
-                mAcquisitionTask.Start();
+
+                mAcquisitionTask = Task.Factory.StartNew(AcquisitonThread,
+                                                         mAcquisitionTokenSource.Token,
+                                                         TaskCreationOptions.LongRunning,
+                                                         TaskScheduler.Default);
 
                 // Create AcquisitionManager
-                MAcquisitionManager = new PvAcquisitionStateManager(mDevice, mStream);
+                AcquisitionManager = new PvAcquisitionStateManager(mDevice, mStream);
             }
             catch (PvException ex)
             {
-                Console.WriteLine(ex.Message);
+                Trace.WriteLine(ex.Message);
                 DisConnectDevice();
                 return false;
             }
@@ -216,14 +215,13 @@ namespace CameraLib
         public async Task DisConnectDeviceAsync()
         {
             // Stop acquisition
-            if (MAcquisitionManager != null)
+            if (AcquisitionManager != null)
             {
-                if (MAcquisitionManager.State == PvAcquisitionState.Locked)
+                if (AcquisitionManager.State == PvAcquisitionState.Locked)
                 {
-                    MAcquisitionManager.Stop();
+                    AcquisitionManager.Stop();
                 }
             }
-
             await Task.Run(() =>
             {
                 try
@@ -231,16 +229,14 @@ namespace CameraLib
                     // Stop display thread
                     if (mAcquisitionTask != null)
                     {
-                        mAcquisitionTokenSource.Cancel();
+                        mAcquisitionTokenSource?.Cancel();
                         mAcquisitionTask.Wait();
                         mAcquisitionTask = null;
+                        mAcquisitionTokenSource = null;
                     }
 
                     // Stop the pipeline
-                    if (mPipeline != null)
-                    {
-                        mPipeline.Stop();
-                    }
+                    mPipeline?.Stop();
 
                     // Close Stream
                     mStream.Close();
@@ -253,7 +249,7 @@ namespace CameraLib
                 }
                 catch (PvException ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Trace.WriteLine(ex.Message);
                 }
             });
         }
@@ -263,27 +259,24 @@ namespace CameraLib
             try
             {
                 // Stop acquisition
-                if (MAcquisitionManager != null)
+                if (AcquisitionManager != null)
                 {
-                    if (MAcquisitionManager.State == PvAcquisitionState.Locked)
+                    if (AcquisitionManager.State == PvAcquisitionState.Locked)
                     {
-                        MAcquisitionManager.Stop();
+                        AcquisitionManager.Stop();
                     }
                 }
 
                 // Stop display thread
                 if (mAcquisitionTask != null)
                 {
-                    mAcquisitionTokenSource.Cancel();
+                    mAcquisitionTokenSource?.Cancel();
                     mAcquisitionTask.Wait();
                     mAcquisitionTask = null;
                 }
 
                 // Stop the pipeline
-                if (mPipeline != null)
-                {
-                    mPipeline.Stop();
-                }
+                mPipeline?.Stop();
 
                 // Close Stream
                 mStream.Close();
@@ -296,36 +289,35 @@ namespace CameraLib
             }
             catch (PvException ex)
             {
-                Console.WriteLine(ex.Message);
+                Trace.WriteLine(ex.Message);
             }
         }
 
         public void StartAcquisition()
         {
-            if (!mDevice.IsConnected)
+            if (IsConnected)
             {
                 return;
             }
 
-            mPipeline.Reset();
+            mPipeline?.Reset();
             mStream.Parameters.ExecuteCommand("Reset");
-
-            if (MAcquisitionManager != null)
+            if (AcquisitionManager != null)
             {
-                if (MAcquisitionManager.State != PvAcquisitionState.Locked)
+                if (AcquisitionManager.State != PvAcquisitionState.Locked)
                 {
-                    MAcquisitionManager.Start();
+                    AcquisitionManager.Start();
                 }
             }
         }
 
         public void StopAcquisition()
         {
-            if (MAcquisitionManager != null)
+            if (AcquisitionManager != null)
             {
-                if (MAcquisitionManager.State == PvAcquisitionState.Locked)
+                if (AcquisitionManager.State == PvAcquisitionState.Locked)
                 {
-                    MAcquisitionManager.Stop();
+                    AcquisitionManager.Stop();
                 }
             }
         }
@@ -339,56 +331,57 @@ namespace CameraLib
                     unsafe
                     {
                         AcquisitionImage.GenImage1(
-                        "byte",
-                        (int)pvBuffer.Image.Width,
-                        (int)pvBuffer.Image.Height,
-                        new IntPtr(pvBuffer.DataPointer));
-                        Console.WriteLine("灰度图，不转换");
+                                            "byte",
+                                            (int)pvBuffer.Image.Width,
+                                            (int)pvBuffer.Image.Height,
+                                            new IntPtr(pvBuffer.DataPointer));
+
+                        Trace.WriteLine("灰度图，不转换");
                     }
                 }
                 else
                 {
-                    if (pvBuffer.Image.PixelType != PvPixelType.RGB8Packed)
+                    if (pvBuffer.Image.PixelType != mConvertBuffer.Image.PixelType)
                     {
-                        if (mBufferConverter.IsConversionSupported(pvBuffer.Image.PixelType, PvPixelType.RGB8Packed))
+                        if (mBufferConverter.IsConversionSupported(pvBuffer.Image.PixelType, mConvertBuffer.Image.PixelType))
                         {
                             try
                             {
                                 mBufferConverter.Convert(pvBuffer, mConvertBuffer, true);
-                                Console.WriteLine("进行了转换");
-                                Console.WriteLine(mConvertBuffer.Image.Width);
-                                Console.WriteLine(mConvertBuffer.Image.Height);
-                                Console.WriteLine(mConvertBuffer.Image.PixelType);
+                                Trace.WriteLine("进行了转换");
+                                Trace.WriteLine(mConvertBuffer.Image.Width);
+                                Trace.WriteLine(mConvertBuffer.Image.Height);
+                                Trace.WriteLine(mConvertBuffer.Image.PixelType);
                             }
                             catch (PvException ex)
                             {
-                                Console.WriteLine(ex.Message);
+                                Trace.WriteLine(ex.Message);
                                 return false;
                             }
 
                             unsafe
                             {
-    try
-    {
-        AcquisitionImage.GenImageInterleaved(
-        new IntPtr(mConvertBuffer.DataPointer),
-        "rgb",
-        (int)mConvertBuffer.Image.Width,
-        (int)mConvertBuffer.Image.Height,
-        0,
-        "byte",
-        0,
-        0,
-        0,
-        0,
-        -1,
-        0);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(ex.Message);
-        return false;
-    }
+                                try
+                                {
+                                    AcquisitionImage.GenImageInterleaved(
+                                                        new IntPtr(mConvertBuffer.DataPointer),
+                                                        "rgb",
+                                                        (int)mConvertBuffer.Image.Width,
+                                                        (int)mConvertBuffer.Image.Height,
+                                                        0,
+                                                        "byte",
+                                                        0,
+                                                        0,
+                                                        0,
+                                                        0,
+                                                        -1,
+                                                        0);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Trace.WriteLine(ex.Message);
+                                    return false;
+                                }
                             }
                         }
                     }
@@ -396,46 +389,43 @@ namespace CameraLib
                     {
                         unsafe
                         {
-    AcquisitionImage.GenImageInterleaved(
-    new IntPtr(pvBuffer.DataPointer),
-    "rgb",
-    (int)pvBuffer.Image.Width,
-    (int)pvBuffer.Image.Height,
-    0,
-    "byte",
-    0,
-    0,
-    0,
-    0,
-    -1,
-    0);
+                            AcquisitionImage.GenImageInterleaved(
+                                                new IntPtr(pvBuffer.DataPointer),
+                                                "rgb",
+                                                (int)pvBuffer.Image.Width,
+                                                (int)pvBuffer.Image.Height,
+                                                0,
+                                                "byte",
+                                                0,
+                                                0,
+                                                0,
+                                                0,
+                                                -1,
+                                                0);
                         }
                     }
                 }
-
                 return true;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-
+                Trace.WriteLine(e.Message);
                 return false;
             }
         }
 
         public void AcquisitonThread()
         {
-            PvBuffer lBuffer = null;
-
+            PvBuffer? lBuffer = null;
             for (; ; )
             {
-                if (mAcquisitionTokenSource.IsCancellationRequested)
+                if (mAcquisitionTokenSource!.IsCancellationRequested)
                 {
                     return;
                 }
 
                 // Retrieve next buffer from acquisition pipeline
-                PvResult lResult = mPipeline.RetrieveNextBuffer(ref lBuffer, 500);
+                PvResult lResult = mPipeline!.RetrieveNextBuffer(ref lBuffer, 500);
                 if (lResult.IsOK)
                 {
                     // Operation result of buffer is OK, display
@@ -443,11 +433,8 @@ namespace CameraLib
                     {
                         // ReaderWriterLock locker(this)
                         // {
-
                         // }
-
-                        Console.WriteLine("output image");
-
+                        Trace.WriteLine("output image");
                         if (ImageConventer(lBuffer))
                         {
                             AcquisitionEvent?.Invoke(this, EventArgs.Empty);
@@ -458,11 +445,6 @@ namespace CameraLib
                     mPipeline.ReleaseBuffer(lBuffer);
                 }
             }
-        }
-
-        public bool IsConnected()
-        {
-            return mDevice.IsConnected;
         }
     }
 }

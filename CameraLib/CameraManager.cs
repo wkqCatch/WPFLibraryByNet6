@@ -11,7 +11,7 @@ namespace CameraLib
 {
     public class CameraManager : IDisposable
     {
-        public event EventHandler ConnectCompleteEvent;
+        public event EventHandler? ConnectCompleteEvent;
 
         public List<CameraDevice> MCameraList { get; set; } = new List<CameraDevice>();
 
@@ -85,7 +85,7 @@ namespace CameraLib
 
                         for (int nCounter = 0; nCounter < lDeviceList.Count; nCounter++)
                         {
-                            if (lDeviceList[nCounter].IsConnected())
+                            if (lDeviceList[nCounter].IsConnected)
                             {
                                 MCameraList.Add(lDeviceList[nCounter]);
                             }

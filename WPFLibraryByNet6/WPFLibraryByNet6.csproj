@@ -2,9 +2,15 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows10.0.22621.0</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CameraLib\CameraLib.csproj" />
+  </ItemGroup>
 
 </Project>

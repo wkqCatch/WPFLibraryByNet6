@@ -3,9 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34003.232
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFLibraryByNet6", "WPFLibraryByNet6\WPFLibraryByNet6.csproj", "{96BE7223-385E-4588-B8C5-AD24925221BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WPFLibraryByNet6", "WPFLibraryByNet6\WPFLibraryByNet6.csproj", "{96BE7223-385E-4588-B8C5-AD24925221BE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{79459CFF-F665-43F7-9095-E0B2B1FF6994} = {79459CFF-F665-43F7-9095-E0B2B1FF6994}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CameraLib", "CameraLib\CameraLib.csproj", "{79459CFF-F665-43F7-9095-E0B2B1FF6994}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CameraLib", "CameraLib\CameraLib.csproj", "{79459CFF-F665-43F7-9095-E0B2B1FF6994}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
