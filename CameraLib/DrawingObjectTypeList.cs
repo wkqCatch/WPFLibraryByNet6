@@ -12,6 +12,8 @@ namespace CameraLib
     {
         public List<DrawingObjectType> DrawingObjectTypeLists { get; set; } = new();
 
+        public HDrawingObject? SelectedDrawingObject { get; set; }
+
         public CameraShowControl? ShowControl { get; set; }
 
         public DrawingObjectTypeList(CameraShowControl showControl) { ShowControl = showControl; }
@@ -27,12 +29,23 @@ namespace CameraLib
                                                                       lineColor,
                                                                       ShowControl);
             DrawingObjectTypeLists.Add(drawingObjectType);
-            drawingObjectType.DrawingobjectCallbackEvent += DrawingObjectType_DrawingobjectCallbackEvent;
         }
 
-        private void DrawingObjectType_DrawingobjectCallbackEvent(HDrawingObject drawid, HWindow window, string type)
+        private void DrawingobjectEvent(HDrawingObject drawid, HWindow window, string type)
         {
-            throw new NotImplementedException();
+            if (type=="on_select")
+            {
+                SelectedDrawingObject = drawid;
+                Trace.WriteLine("on_select");
+            }
+            else if (type=="on_drag")
+            {
+                Trace.WriteLine("on_drag");
+            }
+            else if(type=="on_resize")
+            {
+                Trace.WriteLine("on_resize");
+            }
         }
 
         public void AddDrawingObject(int nTypeIndex, params HTuple[] tuples)
@@ -42,7 +55,10 @@ namespace CameraLib
                 return;
             }
 
-            DrawingObjectTypeLists[nTypeIndex].AddDrawingObject(tuples);
+            HDrawingObject hDrawingObject = DrawingObjectTypeLists[nTypeIndex].AddDrawingObject(tuples);
+            hDrawingObject.OnSelect(DrawingobjectEvent);
+            hDrawingObject.OnResize(DrawingobjectEvent);
+            hDrawingObject.OnDrag(DrawingobjectEvent);
         }
 
         public void HideAKindOfDrawingObjects(int nTypeIndex)

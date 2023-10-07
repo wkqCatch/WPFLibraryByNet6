@@ -5,11 +5,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CameraLib"
              mc:Ignorable="d" 
-             Title="相机选择" Height="509" Width="774">
+             Closing="Window_Closing"
+             Title="相机选择" Height="485" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition/>
+            <RowDefinition MaxHeight="46"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -19,10 +21,169 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Vertical">
-            <local:CameraShowControl x:Name="SmartImg" MinHeight="160" Margin="2"/>
-            <Button MinHeight="30" Margin="2" Padding="2" Content="dianji" Click="Button_Click"/>
-        </StackPanel>
+        <!--<Border Grid.Row="0" Grid.ColumnSpan="4" BorderThickness="0,2,0,2" BorderBrush="Black"/>
+        <Border Grid.Row="1" Grid.ColumnSpan="4" BorderThickness="0,0,0,2" BorderBrush="Black"/>
+        <Border Grid.RowSpan="2" Grid.Column="0" BorderThickness="0,0,1,0" BorderBrush="Black"/>
+        <Border Grid.RowSpan="2" Grid.Column="1" BorderThickness="1,0,1,0" BorderBrush="Black"/>
+        <Border Grid.RowSpan="2" Grid.Column="2" BorderThickness="1,0,1,0" BorderBrush="Black"/>
+        <Border Grid.RowSpan="2" Grid.Column="3" BorderThickness="1,0,0,0" BorderBrush="Black"/>-->
 
+        <Grid Grid.Row="0" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <local:CameraShowControl Grid.Row="0" x:Name="SmartCamera0" MinHeight="100" Margin="6,6,6,3"/>
+            <CheckBox
+                x:Name="CamSelect0"
+                Grid.Row="1"
+                FontSize="18"
+                Margin="6,0,6,2"
+                Padding="2"
+                Content="当前IP地址"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                HorizontalAlignment="Left" />
+        </Grid>
+
+        <Grid Grid.Row="0" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <local:CameraShowControl Grid.Row="0" x:Name="SmartCamera1" MinHeight="100" Margin="6,6,6,3"/>
+            <CheckBox
+                x:Name="CamSelect1"
+                Grid.Row="1"
+                FontSize="18"
+                Margin="6,0,6,2"
+                Padding="2"
+                Content="当前IP地址"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                HorizontalAlignment="Left" />
+        </Grid>
+
+        <Grid Grid.Row="0" Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <local:CameraShowControl Grid.Row="0" x:Name="SmartCamera2" MinHeight="100" Margin="6,6,6,3"/>
+            <CheckBox
+                x:Name="CamSelect2"
+                Grid.Row="1"
+                FontSize="18"
+                Margin="6,0,6,2"
+                Padding="2"
+                Content="当前IP地址"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                HorizontalAlignment="Left" />
+        </Grid>
+
+        <Grid Grid.Row="0" Grid.Column="3">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <local:CameraShowControl Grid.Row="0" x:Name="SmartCamera3" MinHeight="100" Margin="6,6,6,3"/>
+            <CheckBox
+                x:Name="CamSelect3"
+                Grid.Row="1"
+                FontSize="18"
+                Margin="6,0,6,2"
+                Padding="2"
+                Content="当前IP地址"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                HorizontalAlignment="Left" />
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <local:CameraShowControl Grid.Row="0" x:Name="SmartCamera4" MinHeight="100" Margin="6,6,6,3"/>
+            <CheckBox
+                x:Name="CamSelect4"
+                Grid.Row="1"
+                FontSize="18"
+                Margin="6,0,6,2"
+                Padding="2"
+                Content="当前IP地址"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                HorizontalAlignment="Left" />
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <local:CameraShowControl Grid.Row="0" x:Name="SmartCamera5" MinHeight="100" Margin="6,6,6,3"/>
+            <CheckBox
+                x:Name="CamSelect5"
+                Grid.Row="1"
+                FontSize="18"
+                Margin="6,0,6,2"
+                Padding="2"
+                Content="当前IP地址"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                HorizontalAlignment="Left" />
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <local:CameraShowControl Grid.Row="0" x:Name="SmartCamera6" MinHeight="100" Margin="6,6,6,3"/>
+            <CheckBox
+                x:Name="CamSelect6"
+                Grid.Row="1"
+                FontSize="18"
+                Margin="6,0,6,2"
+                Padding="2"
+                Content="当前IP地址"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                HorizontalAlignment="Left" />
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="3">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <local:CameraShowControl Grid.Row="0" x:Name="SmartCamera7" MinHeight="100" Margin="6,6,6,3"/>
+            <CheckBox
+                x:Name="CamSelect7"
+                Grid.Row="1"
+                FontSize="18"
+                Margin="6,0,6,2"
+                Padding="2"
+                Content="当前IP地址"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                HorizontalAlignment="Left" />
+        </Grid>
+
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="刷  新" FontSize="18" Padding="3" MinWidth="100" Margin="2,10,20,2"/>
+            <Button Content="确  认" FontSize="18" Padding="3" MinWidth="100" Margin="2,10,20,2"/>
+            <Button Content="取  消" FontSize="18" Padding="3" MinWidth="100" Margin="2,10,2,2"/>
+        </StackPanel>
     </Grid>
 </Window>

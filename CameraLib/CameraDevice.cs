@@ -66,7 +66,7 @@ namespace CameraLib
 
         public async Task<bool> ConnectDeviceAsync(string strIP)
         {
-            return await Task.Run(async () =>
+            return await Task.Run(() =>
                            {
                                // Connecting
                                try
@@ -83,7 +83,7 @@ namespace CameraLib
                                catch (PvException ex)
                                {
                                    Trace.WriteLine(ex.Message);
-                                   await DisConnectDeviceAsync();
+                                   DisConnectDevice();
                                    return false;
                                }
 
@@ -108,7 +108,7 @@ namespace CameraLib
                                catch (PvException ex)
                                {
                                    Trace.WriteLine(ex.Message);
-                                   await DisConnectDeviceAsync();
+                                   DisConnectDevice();
                                    return false;
                                }
 
@@ -132,9 +132,10 @@ namespace CameraLib
                                catch (PvException ex)
                                {
                                    Trace.WriteLine(ex.Message);
-                                   await DisConnectDeviceAsync();
+                                   DisConnectDevice();
                                    return false;
                                }
+
                                return true;
                            });
         }
@@ -148,12 +149,12 @@ namespace CameraLib
                 mDevice.Connect(strIP);
 
                 // Open stream
-                mStream.Open(strIP);
+                mStream.Open(strIP, 502);
 
                 // Create pipeline
                 mPipeline = new PvPipeline(mStream);
             }
-            catch (PvException ex)
+            catch (Exception ex)
             {
                 Trace.WriteLine(ex.Message);
                 DisConnectDevice();
@@ -239,8 +240,11 @@ namespace CameraLib
                     mPipeline?.Stop();
 
                     // Close Stream
-                    mStream.Close();
-
+                    if (mDevice.IsConnected)
+                    {
+                        mStream.Close();
+                    }
+                    
                     // Disconnect Device
                     mDevice.Disconnect();
 
@@ -279,7 +283,10 @@ namespace CameraLib
                 mPipeline?.Stop();
 
                 // Close Stream
-                mStream.Close();
+                if (mDevice.IsConnected)
+                {
+                    mStream.Close();
+                }
 
                 // Disconnect Device
                 mDevice.Disconnect();
@@ -295,7 +302,7 @@ namespace CameraLib
 
         public void StartAcquisition()
         {
-            if (IsConnected)
+            if (!IsConnected)
             {
                 return;
             }
@@ -431,10 +438,6 @@ namespace CameraLib
                     // Operation result of buffer is OK, display
                     if (lBuffer.OperationResult.IsOK)
                     {
-                        // ReaderWriterLock locker(this)
-                        // {
-                        // }
-                        Trace.WriteLine("output image");
                         if (ImageConventer(lBuffer))
                         {
                             AcquisitionEvent?.Invoke(this, EventArgs.Empty);

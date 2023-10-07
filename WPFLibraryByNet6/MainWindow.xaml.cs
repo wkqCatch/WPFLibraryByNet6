@@ -22,6 +22,8 @@ namespace WPFLibraryByNet6
     /// </summary>
     public partial class MainWindow : Window
     {
+        readonly CameraManager AllCameraManager = new();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -29,8 +31,13 @@ namespace WPFLibraryByNet6
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            CameraSelectionUI cameraSelectionUI = new CameraSelectionUI();
+            CameraSelectionUI cameraSelectionUI = new(AllCameraManager);
             cameraSelectionUI.ShowDialog();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            AllCameraManager.Dispose();
         }
     }
 }

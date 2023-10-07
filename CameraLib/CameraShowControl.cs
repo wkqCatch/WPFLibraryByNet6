@@ -14,38 +14,45 @@ namespace CameraLib
     {
         public CameraDevice? CameraDeviceAttached { get; set; } = null;
 
+        public bool IsFullPart { get; set; } = false;
+
         public HImage? CurrentImage { get; set; } = new HImage();
 
         public DrawingObjectTypeList DrawingTypeList { get; set; }
 
         public CameraShowControl()
         {
-            HMouseDown += CameraShowControl_HMouseDown;
-            HMouseDoubleClick += CameraShowControl_HMouseDoubleClick;
-            HMouseUp += CameraShowControl_HMouseUp;
+            HMouseDown += HMouseDownEvent;
+            HMouseDoubleClick += HMouseDoubleClickEvent;
+            HMouseUp += HMouseUpEvent;
 
             DrawingTypeList = new DrawingObjectTypeList(this);
+
+            HKeepAspectRatio = true;
         }
 
-        private void CameraShowControl_HMouseDoubleClick(object sender, HMouseEventArgsWPF e)
+        private void HMouseDoubleClickEvent(object sender, HMouseEventArgsWPF e)
         {
-            //if (sender is HDrawingObject)
-            //{
-            //    Trace.WriteLine($"是的");
-            //}
-
-            //Trace.WriteLine(sender.GetType().Name);
-            //
-
-            //Trace.WriteLine($"MouseDouble {e.Row} , {e.Column}");
+            foreach (DrawingObjectType drawingObjectType in DrawingTypeList.DrawingObjectTypeLists)
+            {
+                foreach (HDrawingObject hDrawingObject in drawingObjectType.DrawingObjectList)
+                {
+                    HRegion drawingRegion = new(hDrawingObject.GetDrawingObjectIconic());
+                    if(drawingRegion.TestRegionPoint(e.Row, e.Column) == 1)
+                    {
+                        Trace.WriteLine(hDrawingObject.ID);
+                        return;
+                    }
+                }
+            }
         }
 
-        private void CameraShowControl_HMouseDown(object sender, HMouseEventArgsWPF e)
+        private void HMouseDownEvent(object sender, HMouseEventArgsWPF e)
         {
             
         }
 
-        private void CameraShowControl_HMouseUp(object sender, HMouseEventArgsWPF e)
+        private void HMouseUpEvent(object sender, HMouseEventArgsWPF e)
         {
             foreach (DrawingObjectType drawingObjectType in DrawingTypeList.DrawingObjectTypeLists)
             {
@@ -53,12 +60,13 @@ namespace CameraLib
             }
         }
 
-        public void AttachCameraDevice(CameraDevice cameraDevice)
+        public void AttachCameraDevice(CameraDevice? cameraDevice)
         {
             if (cameraDevice != null && CameraDeviceAttached == null)
             {
                 CameraDeviceAttached = cameraDevice;
                 CameraDeviceAttached.AcquisitionEvent += OnImageUpdated;
+                IsFullPart = true;
             }
         }
 
@@ -99,7 +107,31 @@ namespace CameraLib
         public void OnImageUpdated(object? sender, EventArgs eventArgs)
         {
             // HSmartWindow.HalconWindow.ClearWindow();
-            HalconWindow.DispObj(CameraDeviceAttached?.AcquisitionImage);
+
+            // HalconWindow.DispObj(CameraDeviceAttached?.AcquisitionImage);
+            // if (IsFullPart)
+            // {
+            // IsFullPart = false;
+
+            // Dispatcher.Invoke(new Action(() =>
+            // {
+            // SetFullImagePart();
+            // }));
+            // }
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                HalconWindow.DispObj(CameraDeviceAttached?.AcquisitionImage);
+
+                if (IsFullPart)
+                {
+                    IsFullPart = false;
+                    SetFullImagePart();
+                }
+            })).Wait();
+            
+            
+            Trace.WriteLine("显示采集图片");
         }
     }
 }

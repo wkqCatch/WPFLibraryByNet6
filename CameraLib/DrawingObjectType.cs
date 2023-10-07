@@ -48,18 +48,10 @@ namespace CameraLib
             hDrawingObject.SetDrawingObjectParams("color", LineColor);
             hDrawingObject.SetDrawingObjectParams("line_width", LineWidth);
 
-            hDrawingObject.OnSelect(OnSelectEvent);
-
             DrawingObjectList.Add(hDrawingObject);
             ShowControl?.HalconWindow.AttachDrawingObjectToWindow(hDrawingObject);
 
             return hDrawingObject;
-        }
-
-        void OnSelectEvent(HDrawingObject drawid, HWindow window, string type)
-        {
-
-            HRegion hRegion = new(drawid.GetDrawingObjectIconic());
         }
 
         public bool RemoveDrawingObject(HDrawingObject hDrawingObject)

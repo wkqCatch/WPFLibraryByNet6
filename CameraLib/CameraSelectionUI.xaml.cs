@@ -22,25 +22,89 @@ namespace CameraLib
     /// </summary>
     public partial class CameraSelectionUI : Window
     {
-        public CameraSelectionUI()
+        CameraManager? CamManager;
+
+        public CameraSelectionUI(CameraManager? camManager)
         {
             InitializeComponent();
 
-            SmartImg.DrawingTypeList.AddDrawingObjectType(HDrawingObject.HDrawingObjectType.RECTANGLE1, 1, "red");
-            SmartImg.DrawingTypeList.AddDrawingObjectType(HDrawingObject.HDrawingObjectType.CIRCLE, 1, "green");
+            CamManager = camManager;
+
+            Title = "相机连接中";
+            if (CamManager != null)
+            {
+                CamManager.ConnectCompleteEvent += CameraConnectCompleteEvent;
+                CamManager.ConnectAllDeviceAsync();
+            }
         }
 
-        void Button_Click(object sender, RoutedEventArgs e)
+        public CameraSelectionUI()
         {
-            SmartImg.HKeepAspectRatio = true;
-            SmartImg.LoadImage();
-            SmartImg.SetFullImagePart();
+            InitializeComponent();
+        }
 
-            SmartImg.DrawingTypeList.AddDrawingObject(0, 0, 0, 80, 80);
-            SmartImg.DrawingTypeList.AddDrawingObject(0, 0, 0, 80, 80);
+        void CameraConnectCompleteEvent(object? sender, EventArgs e)
+        {
+            Title = $"相机连接完成：{CamManager?.CameraList.Count}个";
 
-            //SmartImg.AddDrawingObject(1, 100, 80, 80);
-            //SmartImg.AddDrawingObject(1, 100, 80, 80);
+            if (CamManager?.CameraList.Count > 0)
+            {
+                List<CameraShowControl> controls = new()
+                {
+                    SmartCamera0,
+                    SmartCamera1,
+                    SmartCamera2,
+                    SmartCamera3,
+                    SmartCamera4,
+                    SmartCamera5,
+                    SmartCamera6,
+                    SmartCamera7
+                };
+
+                for (int i = 0; i < CamManager?.CameraList.Count; i++)
+                {
+                    controls[i].AttachCameraDevice(CamManager?.CameraList[i]);
+                    CamManager?.CameraList[i].StartAcquisition();
+                }
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (CamManager?.CameraList.Count > 0)
+            {
+                List<CheckBox> checkBoxes = new()
+                {
+                    CamSelect0,
+                    CamSelect1,
+                    CamSelect2,
+                    CamSelect3,
+                    CamSelect4,
+                    CamSelect5,
+                    CamSelect6,
+                    CamSelect7
+                };
+
+                List<CameraDevice> cameraDevices = new();
+                for (int i = 0; i < CamManager?.CameraList.Count; i++)
+                {
+                    CamManager.CameraList[i].StopAcquisition();
+
+                    if (checkBoxes[i].IsChecked is true)
+                    {
+                        cameraDevices.Add(CamManager.CameraList[i]);
+                    }
+                    else
+                    {
+                        CamManager.CameraList[i].Dispose();
+                    }
+                }
+
+                if (CamManager is not null)
+                {
+                    CamManager.CameraList = cameraDevices;
+                }
+            }
         }
     }
 }
